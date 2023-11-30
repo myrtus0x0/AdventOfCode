@@ -5,6 +5,7 @@ if [[ $1 =~ [0-9]{1,2} ]]; then
     echo "Directory for day $1 created!"
     echo "Changing to the newly created directory..."
     cd ./$1/
+    touch .gitkeep
 else 
     echo "Directory not created, invalid input!"
 fi
