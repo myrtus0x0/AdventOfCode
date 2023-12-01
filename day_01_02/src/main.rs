@@ -24,6 +24,7 @@ fn check_for_word(line:&str, index:usize, number_tokens:[&str; 9]) -> u32 {
             continue;
         }
         
+        // substring check of [M..N]
         if line[index..index+token.len()].contains(token) {
             println!("word match found: {} - {}", line, token);
             return convert_word_to_int(token);
@@ -71,7 +72,9 @@ fn backwards_indexer(line_size: usize, i: usize) -> usize {
 
 fn parse_int_from_line(line:&str) -> (u32, u32) {
     let number_tokens = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    return (parse(line, 0, forward_indexer, number_tokens), parse(line, 1, backwards_indexer, number_tokens));
+    return (parse(line, 0, forward_indexer, number_tokens), 
+            parse(line, 1, backwards_indexer, number_tokens)
+    );
 }
 
 fn itemize_lines(coordinate_info:String) -> Vec<u32> {
@@ -94,7 +97,6 @@ fn itemize_lines(coordinate_info:String) -> Vec<u32> {
 fn main() {
     let file_path = "./input_coordinates";
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    
     let converted_lines = itemize_lines(contents);
     
     let mut sum = 0;
