@@ -1,6 +1,5 @@
 use std::fs;
 
-
 fn convert_word_to_int(token:&str) -> u32 {
     match token {
         "one" => return 1,
@@ -16,33 +15,40 @@ fn convert_word_to_int(token:&str) -> u32 {
     }
 }
 
-fn backward_parse(line:&str, number_tokens:[&str; 9]) -> u32 {
+fn check_for_word(line:&str, index:usize, number_tokens:[&str; 9]) -> u32 {
+    // iterate over all the tokens and see if our index with the 
+    // substring is a match, if so return the int val and break out 
+    // of parsing
+    for token in number_tokens {
+        if index+token.len() > line.len() {
+            continue;
+        }
+        
+        if line[index..index+token.len()].contains(token) {
+            println!("word match found: {} - {}", line, token);
+            return convert_word_to_int(token);
+        }
+    }
+
+    // TODO: idk how to return errors 
+    return 0;
+}
+
+fn parse(line:&str, index_start:usize, indexer:fn(usize, usize) -> usize, number_tokens:[&str; 9]) -> u32 {
     let mut res: u32 = 0;
     
     let line_size = line.len();
-    let mut i: usize = 1;
+    let mut i: usize = index_start;
     while i <= line_size {
-        let index = line_size-i;
+        // indexer is how we control whether we are going forwrads or backwards
+        let index = indexer(line_size, i);
         let c = line.chars().nth(index).unwrap();
         // case to check if its a digit
         if c.is_numeric() {
             res = c.to_string().parse::<u32>().unwrap();
             break;
         } else {
-            // iterate over all the tokens and see if our index with the 
-            // substring is a match, if so return the int val and break out 
-            // of parsing
-            for token in number_tokens {
-                if index+token.len() > line_size {
-                    continue;
-                }
-                
-                if line[index..index+token.len()].contains(token) {
-                    println!("backward match found: {} - {}", line, token);
-                    res = convert_word_to_int(token);
-                    break
-                }
-            }
+            res = check_for_word(line, index, number_tokens);
         }
 
         if res != 0 {
@@ -55,47 +61,17 @@ fn backward_parse(line:&str, number_tokens:[&str; 9]) -> u32 {
     return res;
 }
 
-fn forward_parse(line:&str, number_tokens:[&str; 9]) -> u32 {
-    let mut res: u32 = 0;
-    
-    let line_size = line.len();
-    let mut i: usize = 0;
-    while i < line_size {
-        let c = line.chars().nth(i).unwrap();
-        // case to check if its a digit
-        if c.is_numeric() {
-            res = c.to_string().parse::<u32>().unwrap();
-            break;
-        } else {
-            // iterate over all the tokens and see if our index with the 
-            // substring is a match, if so return the int val and break out 
-            // of parsing
-            for token in number_tokens {
-                if i+token.len() > line_size {
-                    continue;
-                }
-                // println!("{}", line[i..i+token.len()]);
-                if line[i..i+token.len()].contains(token) {
-                    println!("forward match found: {} - {}", line, token);
-                    res = convert_word_to_int(token);
-                    break
-                }
-            }
-        }
+fn forward_indexer(line_size: usize, i: usize) -> usize {
+    return i;
+}
 
-        if res != 0 {
-            break
-        }
-
-        i += 1;
-    }
-
-    return res;
+fn backwards_indexer(line_size: usize, i: usize) -> usize {
+    return line_size-i;
 }
 
 fn parse_int_from_line(line:&str) -> (u32, u32) {
     let number_tokens = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    return (forward_parse(line, number_tokens), backward_parse(line, number_tokens));
+    return (parse(line, 0, forward_indexer, number_tokens), parse(line, 1, backwards_indexer, number_tokens));
 }
 
 fn itemize_lines(coordinate_info:String) -> Vec<u32> {
