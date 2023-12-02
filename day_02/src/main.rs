@@ -36,9 +36,9 @@ fn parse_game(line:&str) -> GameResult {
     return result;
 }
 
-fn parse_game_info(coordinate_info:String, max_red: u32, max_green: u32, max_blue: u32) -> Vec<u32> {
+fn parse_game_info(game_records:String, max_red: u32, max_green: u32, max_blue: u32) -> Vec<u32> {
     let mut valid_game_ids = Vec::new();
-    let split_lines = coordinate_info.split("\n");
+    let split_lines = game_records.split("\n");
     
     for line in split_lines {
         let game_instance = parse_game(line);

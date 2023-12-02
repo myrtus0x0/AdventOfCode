@@ -36,9 +36,9 @@ fn parse_game(line:&str) -> GameResult {
     return result;
 }
 
-fn parse_game_info(coordinate_info:String) -> Vec<u32> {
+fn parse_game_info(game_records:String) -> Vec<u32> {
     let mut power_sets = Vec::new();
-    let split_lines = coordinate_info.split("\n");
+    let split_lines = game_records.split("\n");
     
     for line in split_lines {
         let game_instance = parse_game(line);
