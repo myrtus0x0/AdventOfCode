@@ -19,6 +19,7 @@ fn parse_card(line:&str) -> Card {
     };
     let mut split_parts = parts.next().unwrap().split("|");
     
+    // TODO: can probably simplify these .next() calls
     let winning_numbers = split_parts.next().unwrap();
     let parsed_ints = winning_numbers.split(" ").filter(|x| *x != "").map(|x| x.parse::<u32>().unwrap());
     result.winning_numbers.extend(parsed_ints);
@@ -31,13 +32,13 @@ fn parse_card(line:&str) -> Card {
 }
 
 fn parse_cards(card_contents:String) -> u32 {
-    let split_lines = card_contents.split("\n");
     let mut cards: Vec<Card> = Vec::new();
-
     let mut copy_counter: HashMap<u32, u32> = HashMap::new();
-    for line in split_lines {
-        
+    
+    for line in card_contents.split("\n") {
         let parsed_card = parse_card(line);
+        
+        // calculate how many winning numbers we have
         let matching_numbers = parsed_card.my_numbers.iter().filter(|&x| parsed_card.winning_numbers.contains(&x)).collect::<Vec<&u32>>().len() as u32;
         
         // we are always going to have at least 1 istance of a card in our stack, 
