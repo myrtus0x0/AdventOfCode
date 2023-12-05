@@ -32,6 +32,7 @@ fn parse_card(line:&str) -> Card {
 }
 
 fn parse_cards(card_contents:String) -> u32 {
+    let mut total_cards = 0;
     let mut cards: Vec<Card> = Vec::new();
     let mut copy_counter: HashMap<u32, u32> = HashMap::new();
     
@@ -60,13 +61,12 @@ fn parse_cards(card_contents:String) -> u32 {
         }
         
         println!("parsed card: {} - {:?} - adding {} copies", parsed_card.card_id, matching_numbers, copy_counter[&parsed_card.card_id]);
-        // for each copy push so we can gather length
-        for _x in 0..copy_counter[&parsed_card.card_id] {
-            cards.push(parsed_card.clone());
-        }
+        
+        // add our copy of cards
+        total_cards += copy_counter[&parsed_card.card_id];
     }
 
-    return cards.len() as u32;
+    return total_cards;
 }
 
 fn main() {
