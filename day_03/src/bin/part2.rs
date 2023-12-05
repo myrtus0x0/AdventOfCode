@@ -32,7 +32,7 @@ fn find_star_neighbor(i: isize, j: isize, schematic_rep: [[i8; 140]; 140]) -> (i
     return (0, 0);
 }
 
-fn parse_schematic(schematic_input:String) -> u32 {
+fn part2(schematic_input:&str) -> u32 {
     let mut schematic_rep = [[0i8; 140]; 140];
     let mut result_hashmap: HashMap<(u32, u32), Vec::<(u32, u32)>> = HashMap::new();
     
@@ -77,7 +77,7 @@ fn parse_schematic(schematic_input:String) -> u32 {
                 
                 // if we found a star neighbor add to set
                 if is_star_neighbor {
-                    println!("star neighbor:{}, i:{}, j:{}", string_num, star_neighbor_i, star_neighbor_j);
+                    // println!("star neighbor:{}, i:{}, j:{}", string_num, star_neighbor_i, star_neighbor_j);
                     let combined = i+j;
                     let parsed_int = string_num.parse::<u32>().unwrap();
                     
@@ -97,7 +97,7 @@ fn parse_schematic(schematic_input:String) -> u32 {
     }
     
     let mut parsed_indexes: Vec<(u32, u32)> = Vec::new();
-    dbg!(&result_hashmap);
+    // dbg!(&result_hashmap);
     let mut to_sum_vals = Vec::new();
     for (key, value) in result_hashmap.clone() {
         for (key_2, value_2) in result_hashmap.clone() {
@@ -106,14 +106,14 @@ fn parse_schematic(schematic_input:String) -> u32 {
             }
 
             if value.len() > 2 || value_2.len() > 2 {
-                println!("too long");
+                // println!("too long");
             }
             
             if key.0 != key_2.0 && 
                 value[0].0 == value_2[0].0 && 
                 value[0].1 == value_2[0].1 {
-                    println!("{} {}, {} {} -> {:?}, {:?}", key.1, key.0, key_2.1, key_2.0, value, value_2);
-                    println!("mult: {} * {}: {}", key.1, key_2.1, key.1 * key_2.1);
+                    // println!("{} {}, {} {} -> {:?}, {:?}", key.1, key.0, key_2.1, key_2.0, value, value_2);
+                    // println!("mult: {} * {}: {}", key.1, key_2.1, key.1 * key_2.1);
                     to_sum_vals.push(key.1 * key_2.1);
                     parsed_indexes.push((key.0, key_2.0));
             }
@@ -124,9 +124,27 @@ fn parse_schematic(schematic_input:String) -> u32 {
 }
 
 fn main() {
-    let file_path = "./puzzle";
-    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    
-    let valid_part_ids = parse_schematic(contents);
-    dbg!(valid_part_ids);
+    let input = include_str!("../puzzle");
+    let answer = part2(input);
+    dbg!(answer/2);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_correct() {
+        let result = part2("467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..");
+        assert_eq!(result/2, 467835);
+    }
 }

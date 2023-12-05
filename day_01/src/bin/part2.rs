@@ -77,7 +77,7 @@ fn parse_int_from_line(line:&str) -> (u32, u32) {
     );
 }
 
-fn itemize_lines(coordinate_info:String) -> Vec<u32> {
+fn part2(coordinate_info:&str) -> u32 {
     let mut converted_ints = Vec::new();
     let split_lines = coordinate_info.split("\n");
     
@@ -91,19 +91,26 @@ fn itemize_lines(coordinate_info:String) -> Vec<u32> {
         println!("line:{} - {}{}",line, part1, part2);
     }
 
-    return converted_ints;
+    return converted_ints.iter().sum();
 }
 
 fn main() {
-    let file_path = "./input_coordinates";
-    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    let converted_lines = itemize_lines(contents);
-    
-    let mut sum = 0;
-    for converted_int in converted_lines {
-        println!("{} += {}", sum, converted_int);
-        sum += converted_int;
-    }
+    let input = include_str!("../puzzle");
+    let answer = part2(input);
+    dbg!(answer);
+}
 
-    println!("final sum: {}", sum);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_correct_part2() {
+        let result = part2("
+1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet");
+        assert_eq!(result, 281);
+    }
 }
