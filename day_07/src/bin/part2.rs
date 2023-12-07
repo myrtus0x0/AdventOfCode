@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::iter::zip;
 use core::cmp::Ordering;
+use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 struct Hand {
@@ -9,6 +10,7 @@ struct Hand {
     highest_val: u32,
 }
 
+// hand types we care about
 const FIVE_OF_A_KIND: u32 = 600;
 const FOUR_OF_A_KIND: u32 = 500;
 const FULL_HOUSE: u32 = 400;
@@ -19,94 +21,34 @@ const HIGHEST_CARD: u32 = 0;
 
 impl Hand {
     fn calc_highest_point(&mut self) {
-
-        if self.check_x_of_kind(5) {
-            self.highest_val = FIVE_OF_A_KIND;
-        } else if self.check_x_of_kind(4) {
-            self.highest_val = FOUR_OF_A_KIND;
-        } else if self.is_full_house() {
-            self.highest_val = FULL_HOUSE;
-        } else if self.check_x_of_kind(3) {
-            self.highest_val = THREE_OF_A_KIND;
-        } else if self.check_double_pair() {
-            self.highest_val = TWO_PAIR;
-        } else if self.check_x_of_kind(2) {
-            self.highest_val = ONE_PAIR;
-        } else {
-            self.highest_val = HIGHEST_CARD;
-        }
-    }
-
-    fn is_full_house(&self) -> bool {
-        let mut triple_pair: u32 = 0;
-        for candidate in &self.cards {
-            let mut count = 0;
-            for c in &self.cards {
-                if candidate == c {
-                    count += 1;
-                }
-
-                if count >= 3 && triple_pair == 0 {
-                    triple_pair = *candidate;
-
-                }
-            }
-        }
+        let card_counts = self.cards.iter().counts();
+        let counts = card_counts.iter()
+        .filter(|&(&x,_)| *x != 1)
+        .map(|(_,&v)| v)
+        .collect::<Vec<_>>();
         
-        if triple_pair == 0 {
-            return false;
+        // count how many jokers we have and our max number of duplicates
+        let n_jokers = self.cards.clone().into_iter().filter(|x| *x == 1 as u32).collect::<Vec<u32>>().len() as u32;
+        let max_duplicates = counts.clone().into_iter().max().unwrap_or(0);
+        
+        match (max_duplicates as u32, n_jokers) {
+        (a,b) if a + b == 5 => self.highest_val = FIVE_OF_A_KIND,
+        (a,b) if a + b == 4 => self.highest_val = FOUR_OF_A_KIND,
+        (3,0) => if counts.contains(&&2) {self.highest_val = FULL_HOUSE} else {self.highest_val = THREE_OF_A_KIND},
+        (2,_) => {
+            // with knowing jokers and pairs we can group things into their best possible
+            let pairs = counts.into_iter().filter(|&v| v == 2).count();
+            match (pairs, n_jokers) {
+                (2,1) => self.highest_val = FULL_HOUSE,
+                (2,0) => self.highest_val = THREE_OF_A_KIND,
+                (1,1) => self.highest_val = TWO_PAIR,
+                _ => self.highest_val = ONE_PAIR,
+            }
+        },
+        (1,2) => self.highest_val = THREE_OF_A_KIND,
+        (1,1) => self.highest_val = ONE_PAIR,
+        _ => self.highest_val = HIGHEST_CARD,
         }
-
-        for candidate in &self.cards {
-            let mut count = 0;
-            for c in &self.cards {
-                if candidate == c {
-                    count += 1;
-                }
-
-                if count >= 2 && *candidate != triple_pair {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    fn check_double_pair(&self) -> bool {
-        let mut found_pairs: Vec<u32> = Vec::new();
-        for candidate in &self.cards {
-            let mut count = 0;
-            for c in &self.cards {
-                if candidate == c {
-                    count += 1;
-                }
-
-                if count >= 2 && !found_pairs.contains(candidate) {
-                    found_pairs.push(*candidate);
-                }
-            }
-
-            if found_pairs.len() == 2 {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    fn check_x_of_kind(&self, n:u32) -> bool {
-        for candidate in &self.cards {
-            let mut count = 0;
-            for c in &self.cards {
-                if candidate == c {
-                    count += 1;
-                }
-            }
-
-            if count >= n {
-                return true;
-            }
-        }
-        return false;
     }
 
     fn compare(&self, other_hand:Hand) -> Ordering {
@@ -130,15 +72,15 @@ impl Hand {
     
 }
 
-fn part1(src_info:&str) -> u32 {
+fn part2(src_info:&str) -> u32 {
     let mut total_winnings = 0;
     
     let mut card_map: HashMap<char, u32> = HashMap::new();
-    card_map.insert('T', 10);
+    card_map.insert('T', 11);
     card_map.insert('J', 1);
-    card_map.insert('Q', 11);
-    card_map.insert('K', 12);
-    card_map.insert('A', 13);
+    card_map.insert('Q', 12);
+    card_map.insert('K', 13);
+    card_map.insert('A', 14);
 
     let mut hands = Vec::new();
     for hand_str in src_info.split("\n") {
@@ -163,6 +105,7 @@ fn part1(src_info:&str) -> u32 {
     hands.sort_by(|a, b| a.compare(b.clone()));
 
     for (i, hand) in hands.iter().enumerate() {
+        println!("{} += {} * {}", total_winnings, hand.bid, (i as u32)+1);
         total_winnings += ((i as u32)+1) * hand.bid;
     }
 
@@ -171,7 +114,8 @@ fn part1(src_info:&str) -> u32 {
 
 fn main() {
     let input = include_str!("../puzzle");
-    let answer = part1(input);
+    let answer = part2(input);
+    assert_eq!(253473930, answer);
     dbg!(answer);
 }
 
@@ -181,7 +125,7 @@ mod tests {
 
     #[test]
     fn is_correct() {
-        let result = part1("32T3K 765
+        let result = part2("32T3K 765
 T55J5 684
 KK677 28
 KTJJT 220
