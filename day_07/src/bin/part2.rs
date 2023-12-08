@@ -40,13 +40,13 @@ impl Hand {
             let pairs = counts.into_iter().filter(|&v| v == 2).count();
             match (pairs, n_jokers) {
                 (2,1) => self.highest_val = FULL_HOUSE,
-                (2,0) => self.highest_val = THREE_OF_A_KIND,
-                (1,1) => self.highest_val = TWO_PAIR,
+                (2,0) => self.highest_val = TWO_PAIR,
+                (1,1) => self.highest_val = THREE_OF_A_KIND,
                 _ => self.highest_val = ONE_PAIR,
             }
         },
-        (1,2) => self.highest_val = THREE_OF_A_KIND,
-        (1,1) => self.highest_val = ONE_PAIR,
+        (a,b) if a + b == 3 => self.highest_val = THREE_OF_A_KIND,
+        (a,b) if a + b == 2 => self.highest_val = ONE_PAIR,
         _ => self.highest_val = HIGHEST_CARD,
         }
     }
@@ -65,7 +65,6 @@ impl Hand {
                 }
             }
         }
-
         return Ordering::Equal;
     }
 
@@ -76,11 +75,11 @@ fn part2(src_info:&str) -> u32 {
     let mut total_winnings = 0;
     
     let mut card_map: HashMap<char, u32> = HashMap::new();
-    card_map.insert('T', 11);
+    card_map.insert('T', 10);
     card_map.insert('J', 1);
-    card_map.insert('Q', 12);
-    card_map.insert('K', 13);
-    card_map.insert('A', 14);
+    card_map.insert('Q', 11);
+    card_map.insert('K', 12);
+    card_map.insert('A', 13);
 
     let mut hands = Vec::new();
     for hand_str in src_info.split("\n") {
@@ -102,11 +101,11 @@ fn part2(src_info:&str) -> u32 {
         hands.push(hand);
     }
 
-    hands.sort_by(|a, b| a.compare(b.clone()));
+    hands.sort_unstable_by(|a, b| a.compare(b.clone()));
 
     for (i, hand) in hands.iter().enumerate() {
         println!("{} += {} * {}", total_winnings, hand.bid, (i as u32)+1);
-        total_winnings += ((i as u32)+1) * hand.bid;
+        total_winnings += (i as u32)*hand.bid+hand.bid;
     }
 
     return total_winnings;
